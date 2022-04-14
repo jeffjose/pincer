@@ -1,4 +1,5 @@
-use poem::{get, handler, listener::TcpListener, web::Json, web::Path, Route, Server};
+use poem::{get, handler, listener::TcpListener, web::Html, web::Json, web::Path, Route, Server};
+use reqwest;
 
 use serde::Serialize;
 
@@ -8,8 +9,13 @@ struct Response {
 }
 
 #[handler]
-async fn hello(Path(name): Path<String>) -> String {
-    format!("hello: {}", name)
+async fn proxy(Path(url): Path<String>) -> Html<String> {
+    //format!("{}", name)
+
+    let fullpath = format!("https://{url}");
+    let result = reqwest::get(fullpath).await.unwrap().text().await.unwrap();
+
+    Html(result)
 }
 
 #[handler]
@@ -20,7 +26,7 @@ async fn json(Path(name): Path<String>) -> Json<Response> {
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
     let app = Route::new()
-        .at("/reddit/:name", get(hello))
+        .at("/proxy/*url", get(proxy))
         .at("/json/:name", get(json));
     Server::new(TcpListener::bind("127.0.0.1:3000"))
         .name("pincer")
