@@ -463,6 +463,8 @@ name = "pincer"
 version = "0.1.0"
 dependencies = [
  "poem",
+ "serde",
+ "serde_json",
  "tokio",
  "tracing-subscriber",
 ]
